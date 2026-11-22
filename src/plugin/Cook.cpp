@@ -627,9 +627,9 @@ namespace Cook
 				return;  // not measured yet
 			}
 			const double w = mx.x - mn.x, d = mx.y - mn.y, h = mx.z - mn.z;
-			const double big = (std::max)(w, d), small = (std::min)(w, d);
+			const double big = (std::max)(w, d), narrow = (std::min)(w, d);
 			const double flat = big > 0.01 ? h / big : 0.0;
-			if (big > 0.01 && small >= 0.72 * big && flat >= 0.25 && flat <= 0.8) {
+			if (big > 0.01 && narrow >= 0.72 * big && flat >= 0.25 && flat <= 0.8) {
 				return;  // round and low: a pot as the game's (36 x 37 across, 17 high)
 			}
 			spdlog::warn("Kitchen: the game's pot {} is not a pot's shape ({:.0f} x {:.0f} x {:.0f}): a replacer? Using ours (Hearthcooking.ini [Meshes] Pot=ours)",
