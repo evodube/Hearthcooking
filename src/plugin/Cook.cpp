@@ -614,8 +614,37 @@ namespace Cook
 			}
 		}
 
+		// The game's pot, when a mod has replaced it with one of another shape (tall, on its side, with a long handle):
+		// stretched into a vanilla pot's round, low box it would be crushed, the broth hanging over it. Then ours is used
+		// instead, and kept in the INI.
+		void CheckPot()
+		{
+			if (P.pot < 0 || !Game(Kit::Role::Pot)) {
+				return;
+			}
+			Vec3 mn, mx;
+			if (!Scene::Bounds(P.pot, mn, mx)) {
+				return;  // not measured yet
+			}
+			const double w = mx.x - mn.x, d = mx.y - mn.y, h = mx.z - mn.z;
+			const double big = (std::max)(w, d), small = (std::min)(w, d);
+			const double flat = big > 0.01 ? h / big : 0.0;
+			if (big > 0.01 && small >= 0.72 * big && flat >= 0.25 && flat <= 0.8) {
+				return;  // round and low: a pot as the game's (36 x 37 across, 17 high)
+			}
+			spdlog::warn("Kitchen: the game's pot {} is not a pot's shape ({:.0f} x {:.0f} x {:.0f}): a replacer? Using ours (Hearthcooking.ini [Meshes] Pot=ours)",
+				Kit::Get(Kit::Role::Pot).path, w, d, h);
+			Kit::SetMesh(Kit::Role::Pot, "ours");
+			std::erase_if(g_fits, [](const auto& f) { return f.id == P.pot; });
+			Scene::Hide(P.pot, true);
+			P.pot = KitAdd(Kit::Role::Pot);
+			Scene::LookOf(P.pot).hideFlat = true;
+			Put(P.pot, { L::kPotX, L::kPotY, 0.0 }, 0.0);
+		}
+
 		void Refit()
 		{
+			CheckPot();
 			for (const auto& f : g_fits) {
 				Pose p;
 				if (FitBox(f.id, f.role == Kit::Role::Count ? Kit::Mesh{} : Kit::Get(f.role), f.at, f.size, f.rotZ, f.stretch, p)) {
