@@ -1,6 +1,7 @@
 // Hearthcooking - cook by hand in Skyrim Special Edition.
 // Copyright (C) 2026 evodube. GPL-3.0 (LICENSE.txt).
 #include "Render3D.h"
+#include "Config.h"
 #include <unordered_map>
 #include <atomic>
 #include <chrono>
@@ -801,7 +802,8 @@ float4 PSComposite(FSOut i) : SV_Target
 		std::unordered_map<std::uint64_t, ID3D11InputLayout*> g_layouts;
 
 		// size-dependent targets
-		UINT                      g_w = 0, g_h = 0, g_msaa = 1;
+		UINT                      g_w = 0, g_h = 0, g_msaa = 1, g_msaaWant = 0;
+		int                       g_blurMade = 0;  // frames of the frozen world blurred so far
 		DXGI_FORMAT               g_backFmt = DXGI_FORMAT_UNKNOWN;
 		ID3D11Texture2D*          g_color = nullptr;  // MSAA, linear HDR, premultiplied
 		ID3D11RenderTargetView*   g_colorRTV = nullptr;
@@ -814,7 +816,7 @@ float4 PSComposite(FSOut i) : SV_Target
 		ID3D11Texture2D*          g_q[2]{};  // quarter size, for the blur
 		ID3D11RenderTargetView*   g_qRTV[2]{};
 		ID3D11ShaderResourceView* g_qSRV[2]{};
-		constexpr UINT            kShadow = 2048;
+		UINT                      kShadow = 2048;  // (by the quality setting, when the device is first set up)
 		ID3D11Texture2D*          g_shadow = nullptr;
 		ID3D11DepthStencilView*   g_shadowDSV = nullptr;
 		ID3D11ShaderResourceView* g_shadowSRV = nullptr;
@@ -1016,6 +1018,7 @@ float4 PSComposite(FSOut i) : SV_Target
 			rt.DestBlendAlpha = D3D11_BLEND_ONE;
 			a_dev->CreateBlendState(&bd, &g_bsAlpha);
 			// the shadow map
+			kShadow = Config::Get().quality >= 2 ? 2048 : 1024;
 			D3D11_TEXTURE2D_DESC td{};
 			td.Width = td.Height = kShadow;
 			td.MipLevels = td.ArraySize = 1;
@@ -1074,16 +1077,19 @@ float4 PSComposite(FSOut i) : SV_Target
 
 		bool Targets(const D3D11_TEXTURE2D_DESC& a_back)
 		{
-			if (g_w == a_back.Width && g_h == a_back.Height && g_backFmt == a_back.Format && g_color) {
+			const UINT want = Config::Get().quality >= 2 ? 4 : Config::Get().quality == 1 ? 2 : 1;
+			if (g_w == a_back.Width && g_h == a_back.Height && g_backFmt == a_back.Format && g_color && g_msaaWant == want) {
 				return true;
 			}
+			g_msaaWant = want;
 			FreeTargets();
+			g_blurMade = 0;
 			g_w = a_back.Width;
 			g_h = a_back.Height;
 			g_backFmt = a_back.Format;
 			UINT q = 0;
-			g_msaa = 4;
-			if (FAILED(g_dev->CheckMultisampleQualityLevels(DXGI_FORMAT_R16G16B16A16_FLOAT, 4, &q)) || q == 0) {
+			g_msaa = want;
+			if (g_msaa > 1 && (FAILED(g_dev->CheckMultisampleQualityLevels(DXGI_FORMAT_R16G16B16A16_FLOAT, g_msaa, &q)) || q == 0)) {
 				g_msaa = 1;
 			}
 			D3D11_TEXTURE2D_DESC td{};
@@ -1561,14 +1567,24 @@ float4 PSComposite(FSOut i) : SV_Target
 			const float veil[4] = { 0.0f, 0.0f, 0.0f, (std::min)(0.85f, 0.35f + g_frame.blur) };
 			c->ClearRenderTargetView(backRTV, veil);
 		} else if (g_frame.blur > 0.001f && bdsc.SampleDesc.Count == 1) {
-			c->CopyResource(g_bg, back);
-			const UINT  qw = (std::max)(1u, g_w / 4), qh = (std::max)(1u, g_h / 4);
-			const float down[4] = { 1.0f / g_w, 1.0f / g_h, 0, 0 };
-			FullScreen(c, g_qRTV[0], qw, qh, g_psDown, g_bgSRV, down, g_bsOpaque);
-			for (int k = 0; k < 2; ++k) {
-				const float h[4] = { 1.0f / qw, 1.0f / qh, 0, 0 }, v[4] = { 1.0f / qw, 1.0f / qh, 0, 1 };
-				FullScreen(c, g_qRTV[1], qw, qh, g_psBlur, g_qSRV[0], h, g_bsOpaque);
-				FullScreen(c, g_qRTV[0], qw, qh, g_psBlur, g_qSRV[1], v, g_bsOpaque);
+			// the world behind is frozen while the kitchen is open: blurred over its first few frames, then kept
+			static ULONGLONG s_last = 0;
+			const ULONGLONG  now = ::GetTickCount64();
+			if (now - s_last > 400) {
+				g_blurMade = 0;  // (opened again)
+			}
+			s_last = now;
+			const UINT qw = (std::max)(1u, g_w / 4), qh = (std::max)(1u, g_h / 4);
+			if (g_blurMade < 4) {
+				++g_blurMade;
+				c->CopyResource(g_bg, back);
+				const float down[4] = { 1.0f / g_w, 1.0f / g_h, 0, 0 };
+				FullScreen(c, g_qRTV[0], qw, qh, g_psDown, g_bgSRV, down, g_bsOpaque);
+				for (int k = 0; k < 2; ++k) {
+					const float h[4] = { 1.0f / qw, 1.0f / qh, 0, 0 }, v[4] = { 1.0f / qw, 1.0f / qh, 0, 1 };
+					FullScreen(c, g_qRTV[1], qw, qh, g_psBlur, g_qSRV[0], h, g_bsOpaque);
+					FullScreen(c, g_qRTV[0], qw, qh, g_psBlur, g_qSRV[1], v, g_bsOpaque);
+				}
 			}
 			const float b[4] = { 0, 0, g_frame.blur, 0 };
 			FullScreen(c, backRTV, g_w, g_h, g_psBack, g_qSRV[0], b, g_bsAlpha);

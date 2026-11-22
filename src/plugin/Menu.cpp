@@ -55,6 +55,20 @@ namespace Menu
 				}
 				Hint("Takes effect the next time the kitchen opens; kept in Hearthcooking.ini.");
 			}
+			UI::SeparatorText("Graphics");
+			{
+				static const char* kQ[] = { "Low (fastest)", "Medium", "High" };
+				if (UI::BeginCombo("Kitchen quality", kQ[std::clamp(v.quality, 0, 2)])) {
+					for (int q = 2; q >= 0; --q) {
+						if (UI::Selectable(kQ[q], v.quality == q)) {
+							v.quality = q;
+							Changed(true);
+						}
+					}
+					UI::EndCombo();
+				}
+				Hint("High: 4x anti-aliasing and sharp shadows. Medium: 2x. Low: none, for older cards. Shadows change at the next game start.");
+			}
 			UI::SeparatorText("Controls and sound");
 			Changed(UI::SliderFloat("Mouse speed", &v.mouseSpeed, 0.2f, 3.0f, "%.2f"));
 			Changed(UI::SliderFloat("Interface size", &v.uiScale, 0.6f, 1.6f, "%.2f"));

@@ -396,7 +396,9 @@ namespace Scene
 			{
 				using Flag = RE::UI_MENU_FLAGS;
 				auto* m = new KitchenMenu();
-				m->menuFlags.set(Flag::kPausesGame, Flag::kDisablePauseMenu, Flag::kUsesMenuContext, Flag::kCustomRendering, Flag::kRequiresUpdate);
+				// (the world behind frozen, as the Tab menu does: the game stops drawing the cell while the kitchen covers it)
+				m->menuFlags.set(Flag::kPausesGame, Flag::kDisablePauseMenu, Flag::kUsesMenuContext, Flag::kCustomRendering, Flag::kRequiresUpdate,
+					Flag::kFreezeFrameBackground);
 				m->depthPriority = 12;  // over the crafting menu we sit on
 				return m;
 			}

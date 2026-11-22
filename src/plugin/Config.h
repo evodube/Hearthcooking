@@ -24,6 +24,7 @@ namespace Config
 		// The kitchen on screen
 		float tiltDeg = 56.0f;      // how far you look down on it
 		float zoom = 1.0f;          // > 1 closer, < 1 further back
+		int   quality = 2;          // the kitchen's drawing: 2 high (4x MSAA, sharp shadows), 1 medium (2x), 0 low (none)
 
 		// Play
 		float mouseSpeed = 1.0f;

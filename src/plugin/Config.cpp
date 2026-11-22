@@ -71,6 +71,7 @@ namespace Config
 		put("General", "Enabled", v.enabled ? "1" : "0");
 		put("Kitchen", "TiltDegrees", f(v.tiltDeg));
 		put("Kitchen", "Zoom", f(v.zoom));
+		put("Graphics", "Quality", std::to_string(v.quality));
 		put("Play", "MouseSpeed", f(v.mouseSpeed));
 		put("Play", "UiScale", f(v.uiScale));
 		put("Play", "Sound", v.sound ? "1" : "0");
@@ -93,6 +94,7 @@ namespace Config
 		v.enabled = Bool("General", "Enabled", v.enabled);
 		v.tiltDeg = std::clamp(Float("Kitchen", "TiltDegrees", v.tiltDeg), 25.0f, 85.0f);
 		v.zoom = std::clamp(Float("Kitchen", "Zoom", v.zoom), 0.5f, 2.0f);
+		v.quality = std::clamp(static_cast<int>(Float("Graphics", "Quality", static_cast<float>(v.quality))), 0, 2);
 		v.mouseSpeed = std::clamp(Float("Play", "MouseSpeed", v.mouseSpeed), 0.1f, 5.0f);
 		v.uiScale = std::clamp(Float("Play", "UiScale", v.uiScale), 0.5f, 2.0f);
 		v.sound = Bool("Play", "Sound", v.sound);
