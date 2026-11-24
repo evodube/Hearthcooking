@@ -887,16 +887,14 @@ namespace Scene
 				if (!it.diffuse && set) {
 					it.diffuse = SrvOfPath(set->GetTexturePath(RE::BSTextureSet::Texture::kDiffuse));
 				}
+				bool swapped = false;
 				// the form's own textures for this shape (the game's stews share one mesh, told apart this way)
 				for (const auto& sw : p.swaps) {
 					const bool named = !sw.shape.empty() && _stricmp(sw.shape.c_str(), a_geo->name.c_str()) == 0;
 					if (named || (sw.shape.empty() && sw.index == shapeIndex)) {
 						if (auto* d = SrvOfPath(sw.diffuse.c_str())) {
 							it.diffuse = d;
-							// a swapped texture's alpha needn't be what the shape's own material cuts by (the game's
-							// cabbage wore one and vanished): no cut-out on it
-							it.test = false;
-							it.blend = false;
+							swapped = true;
 						}
 						if (auto* n = SrvOfPath(sw.normal.c_str())) {
 							it.normal = n;
@@ -927,6 +925,12 @@ namespace Scene
 					it.blend = ap->GetAlphaBlending();
 					it.test = ap->GetAlphaTesting();
 					it.alphaRef = ap->alphaThreshold / 255.0f;
+				}
+				if (swapped) {
+					// a swapped texture's alpha needn't be what the shape's own material cuts by (the game's cabbage
+					// wears one and vanished): no cut-out on it (after the shape's own alpha settings, or they win)
+					it.test = false;
+					it.blend = false;
 				}
 				const auto& lk = p.look;
 				if (lk.skin) {
