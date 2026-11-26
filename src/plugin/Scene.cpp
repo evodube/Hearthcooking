@@ -33,6 +33,7 @@ namespace Scene
 			};
 			std::vector<Swap> swaps;
 			std::vector<std::string> hideShapes;
+			bool                     solid = false, toldSolid = false;
 		};
 
 		bool LeftOut(const Prop& a_p, RE::BSGeometry* a_geo)
@@ -626,6 +627,13 @@ namespace Scene
 		}
 	}
 
+	void Solid(Id a_id)
+	{
+		if (Valid(a_id)) {
+			g_props[a_id].solid = true;
+		}
+	}
+
 	void SwapTextures(Id a_id, const std::string& a_shape, int a_index, const std::string& a_diffuse, const std::string& a_normal)
 	{
 		if (Valid(a_id)) {
@@ -925,6 +933,13 @@ namespace Scene
 					it.blend = ap->GetAlphaBlending();
 					it.test = ap->GetAlphaTesting();
 					it.alphaRef = ap->alphaThreshold / 255.0f;
+				}
+				if (p.solid && (it.test || it.blend)) {
+					if (!p.toldSolid) {
+						p.toldSolid = true;
+						spdlog::info("Mesh {}: its alpha {}{} ignored, drawn solid (food)", p.model, it.test ? "cut-out" : "", it.blend ? " blending" : "");
+					}
+					swapped = true;
 				}
 				if (swapped) {
 					// a swapped texture's alpha needn't be what the shape's own material cuts by (the game's cabbage

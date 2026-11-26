@@ -1074,6 +1074,7 @@ namespace Cook
 				return -1;
 			}
 			const auto id = Scene::Add(a_u.model);
+			Scene::Solid(id);  // (food is never see-through: some meshes' alpha would cut it all away)
 			if (g_recipe && a_u.ing >= 0 && a_u.ing < static_cast<int>(g_recipe->ings.size()) && a_u.model == g_recipe->ings[a_u.ing].model) {
 				Swaps(id, g_recipe->ings[a_u.ing].form);  // (its own mesh only: another's would be wrongly dressed)
 			}

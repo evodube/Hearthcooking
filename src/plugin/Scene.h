@@ -58,6 +58,7 @@ namespace Scene
 	void  HideShapes(Id a_id, std::vector<std::string> a_words);
 	// A dish's food texture: the diffuse of its part that isn't the bowl or plate (with the form's swaps); null till loaded
 	::ID3D11ShaderResourceView* FoodTexture(Id a_id);
+	void  Solid(Id a_id);  // food: drawn whole, whatever its mesh's alpha says (a cabbage's alpha cut it all away)
 	void  SwapTextures(Id a_id, const std::string& a_shape, int a_index, const std::string& a_diffuse, const std::string& a_normal);
 	void  Place(Id a_id, const hc::Vec3& a_pos, const hc::Quat& a_rot, float a_scale = 1.0f);
 	void  Stretch(Id a_id, float a_x, float a_y, float a_z);       // along its own axes
