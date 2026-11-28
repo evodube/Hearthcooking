@@ -1,6 +1,7 @@
 // Hearthcooking - cook by hand in Skyrim Special Edition.
 // Copyright (C) 2026 evodube. GPL-3.0 (LICENSE.txt).
 #include "Ui.h"
+#include "Lang.h"
 
 #include "Audio.h"
 #include "Config.h"
@@ -54,7 +55,11 @@ namespace Ui
 		std::vector<ImWchar>     extra;
 		{
 			std::set<ImWchar> cps;
-			for (const auto& n : Recipes::AllNames()) {
+			auto names = Recipes::AllNames();
+			for (auto& t : Lang::AllText()) {
+				names.push_back(std::move(t));  // (and the translation's own letters)
+			}
+			for (const auto& n : names) {
 				const int wn = ::MultiByteToWideChar(CP_UTF8, 0, n.data(), static_cast<int>(n.size()), nullptr, 0);
 				if (wn <= 0) {
 					continue;

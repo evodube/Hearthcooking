@@ -20,6 +20,8 @@ jobs:
           mkdir -p build
           g++ -std=c++20 -O2 -Wall -Wextra -Werror -o build/kitchen_test tests/kitchen_test.cpp src/sim/Kitchen.cpp
           ./build/kitchen_test
+      - name: Translation template up to date
+        run: python3 tools/translations.py --check
 
   plugin:
     runs-on: windows-2022
@@ -133,12 +135,13 @@ jobs:
         run: |
           $out = "package"
           $p = "$out/Data/SKSE/Plugins/Hearthcooking"
-          New-Item -ItemType Directory -Force -Path "$p/Sounds", "$p/Fonts", "$p/UI" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$p/Sounds", "$p/Fonts", "$p/UI", "$p/Translations" | Out-Null
           Copy-Item build/Release/Hearthcooking.dll "$out/Data/SKSE/Plugins/"
           Copy-Item Hearthcooking.ini "$out/Data/SKSE/Plugins/"
           Copy-Item assets/game_sounds/*.wav "$p/Sounds/"
           Copy-Item assets/fonts/* "$p/Fonts/"
           Copy-Item assets/ui/*.rgba "$p/UI/"
+          Copy-Item assets/translations/* "$p/Translations/"
           Copy-Item Hearthcooking.esp "$out/Data/"
           Copy-Item -Recurse assets/meshes "$out/Data/meshes"
           Copy-Item -Recurse assets/textures "$out/Data/textures"

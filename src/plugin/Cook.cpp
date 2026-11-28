@@ -6,6 +6,7 @@
 #include "Config.h"
 #include <unordered_set>
 #include "Kit.h"
+#include "Lang.h"
 #include "Overlay.h"
 #include "Recipes.h"
 #include "Scene.h"
@@ -1162,11 +1163,11 @@ namespace Cook
 		{
 			std::string l = a_name;
 			std::transform(l.begin(), l.end(), l.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-			const std::string n = a_count > 1 ? fmt::format(" ({})", a_count) : "";
+			const std::string n = a_count > 1 ? TrF(" ({})", a_count) : std::string();
 			if (l.find("garlic") != std::string::npos && l.find("bread") == std::string::npos) {
-				return fmt::format("{}{}: break apart the cloves, then dice", a_name, n);
+				return TrF("{}{}: break apart the cloves, then dice", a_name, n);
 			}
-			return fmt::format("Dice the {}{}", a_name, n);
+			return TrF("Dice the {}{}", a_name, n);
 		}
 
 		// What it looks like inside, where there's a texture for it: an atlas of its section across and along
@@ -2019,7 +2020,7 @@ namespace Cook
 		void PourOnDough()
 		{
 			if (g_topping && !g_buttered) {
-				Toast("Butter the bread first");
+				Toast(Tr("Butter the bread first"));
 				return;
 			}
 			if (g_topping) {
@@ -2044,11 +2045,11 @@ namespace Cook
 				return;
 			}
 			if (g_doughNeeded > 0 && g_oven->Dough() < 0.9) {
-				Toast("Knead the dough first");
+				Toast(Tr("Knead the dough first"));
 				return;
 			}
 			if (g_oven->Pie() && g_flat < 1.0) {
-				Toast(Dumpling() ? "Roll the dough out square first" : "Roll the dough out first");
+				Toast(Dumpling() ? Tr("Roll the dough out square first") : Tr("Roll the dough out first"));
 				return;
 			}
 			g_bowlPoured = true;
@@ -2119,11 +2120,11 @@ namespace Cook
 					// diced, not sliced: whatever isn't long and thin is cut both ways before the board lifts
 					for (const auto& u : g_units) {
 						if (any && u.at == Unit::At::Board && (u.bulb || (u.thin && u.cut.cutCount == 0))) {
-							Toast(u.bulb ? "Knock it apart into its cloves with the knife, then dice them" : "Cut it first");
+							Toast(u.bulb ? Tr("Knock it apart into its cloves with the knife, then dice them") : Tr("Cut it first"));
 							return;
 						}
 						if (any && u.at == Unit::At::Board && !u.thin && (u.cut.cutCount == 0 || u.cut.alongCount == 0)) {
-							Toast(u.cut.cutCount == 0 ? "Cut it, then right-click to turn the knife and cut it the other way" : "Now right-click to turn the knife and cut it the other way");
+							Toast(u.cut.cutCount == 0 ? Tr("Cut it, then right-click to turn the knife and cut it the other way") : Tr("Now right-click to turn the knife and cut it the other way"));
 							return;
 						}
 					}
@@ -2161,7 +2162,7 @@ namespace Cook
 			// the oven: its door, what's in it, the dough
 			if (oven) {
 				if (g_oven->InOven() && g_peelT < 0 && NearScreen(BreadAt() + Vec3{ 0, 0, 1.5 }, mx, my, 4.0, 30.0f)) {
-					Toast(g_door > 0.6 ? "Too hot for hands: take it out with the peel" : "Open the door, then take it out with the peel");
+					Toast(g_door > 0.6 ? Tr("Too hot for hands: take it out with the peel") : Tr("Open the door, then take it out with the peel"));
 					return;
 				}
 				if (g_peelBread && g_peelT < 0 && P.peel >= 0) {
@@ -2214,7 +2215,7 @@ namespace Cook
 							fillingOff |= u.role == Role::Filling && u.at != Unit::At::Dough;
 						}
 						if (g_rolled && fillingOff && r > 2.6 && r < R + 1.2) {
-							Toast(Dumpling() ? "All the filling on first, then fold" : Crostata() ? "All the fruit on first, then fold the edge" : "All the filling on first, then crimp");
+							Toast(Dumpling() ? Tr("All the filling on first, then fold") : Crostata() ? Tr("All the fruit on first, then fold the edge") : Tr("All the filling on first, then crimp"));
 							return;
 						}
 						if (g_rolled && Dumpling() && r > 2.6 && r < R + 1.2) {
@@ -2254,7 +2255,7 @@ namespace Cook
 					if (ready) {
 						g_pinHeld = true;
 					} else {
-						Toast(g_flat >= 1.0 || g_rolled ? "It's rolled out already" : "Knead the dough first, then roll it out");
+						Toast(g_flat >= 1.0 || g_rolled ? Tr("It's rolled out already") : Tr("Knead the dough first, then roll it out"));
 					}
 					return;
 				}
@@ -2377,12 +2378,12 @@ namespace Cook
 					if (CutsWaiting() && std::abs(dA) < 1.5 && g_doughParts >= (std::max)(1, g_doughNeeded)) {
 						if (Audio::Now() - g_lastStir > 1.5) {
 							g_lastStir = Audio::Now();
-							Toast("Pour in what's in the right bowl first");
+							Toast(Tr("Pour in what's in the right bowl first"));
 						}
 					} else if (g_recipe->salted && g_oven->Seasoning().amount < 0.3 && std::abs(dA) < 1.5 && g_doughParts >= (std::max)(1, g_doughNeeded)) {
 						if (Audio::Now() - g_lastStir > 1.5) {
 							g_lastStir = Audio::Now();
-							Toast("A pinch of salt first");
+							Toast(Tr("A pinch of salt first"));
 						}
 					} else if (std::abs(dA) < 1.5 && g_doughParts >= (std::max)(1, g_doughNeeded)) {
 						g_mix = (std::min)(1.0, g_mix + std::abs(dA) / (2.0 * kPi * 4.0));  // four turns round
@@ -2396,11 +2397,11 @@ namespace Cook
 						if (g_mix >= 1.0) {
 							g_ball = true;
 							g_hold = Hold::None;
-							Toast("A ball of dough: lift it onto the board");
+							Toast(Tr("A ball of dough: lift it onto the board"));
 						}
 					} else if (g_doughParts < (std::max)(1, g_doughNeeded) && Audio::Now() - g_lastStir > 1.5) {
 						g_lastStir = Audio::Now();
-						Toast("Everything for the dough goes in the bowl first");
+						Toast(Tr("Everything for the dough goes in the bowl first"));
 					}
 				}
 				break;
@@ -2445,7 +2446,7 @@ namespace Cook
 						if (g_doughNeeded > 0 && g_doughParts < g_doughNeeded) {
 							if (Audio::Now() - g_lastStir > 1.5) {
 								g_lastStir = Audio::Now();
-								Toast("The dough isn't all in yet");
+								Toast(Tr("The dough isn't all in yet"));
 							}
 						} else {
 							g_peelLoaded = true;
@@ -2575,7 +2576,7 @@ namespace Cook
 					double lx = 0, ly = 0;
 					if (g_flow == hc::Flow::Pot) {
 						if (u.role == Role::Chop && P.board >= 0 && g_tip < 0.05 && OverBoard(mx, my, lx, ly) && OneOnBoard()) {
-							Toast("One at a time: into the pot with what's on the board first");
+							Toast(Tr("One at a time: into the pot with what's on the board first"));
 							PutBack(ui);
 							break;
 						}
@@ -2586,7 +2587,7 @@ namespace Cook
 								u.lane = lane;
 								break;
 							}
-							Toast("The board is full");
+							Toast(Tr("The board is full"));
 						} else if (SauceBowl() && Liquid(u) && OverSauceBowl(mx, my)) {
 							// poured into the sauce's bowl (the ale before the honey), the bottle stood beside it
 							bool aleWaiting = false;
@@ -2598,7 +2599,7 @@ namespace Cook
 								aleWaiting |= on.find("ale") != std::string::npos && on.find("kale") == std::string::npos && !o.byBowl && o.at != Unit::At::Pot;
 							}
 							if (ln.find("honey") != std::string::npos && aleWaiting) {
-								Toast("The ale goes in first");
+								Toast(Tr("The ale goes in first"));
 								PutBack(ui);
 								break;
 							}
@@ -2608,7 +2609,7 @@ namespace Cook
 							Audio::Play({ ln.find("honey") != std::string::npos ? "splash_0" : "pour", 0.6f });
 							break;
 						} else if (SauceBowl() && Liquid(u) && OverPot(mx, my, 1.0)) {
-							Toast("Into the bowl first, then the bowl into the pot");
+							Toast(Tr("Into the bowl first, then the bowl into the pot"));
 							PutBack(ui);
 							break;
 						} else if (OverPot(mx, my, 1.0)) {
@@ -2642,12 +2643,12 @@ namespace Cook
 						if (u.role == Role::Meat && NearScreen(SpitAxis(0.0), mx, my, 11.0, 60.0f)) {
 							// salted first, and a fire laid under the spit, then it goes on
 							if (g_recipe->salted && Mounted() == 0 && g_spit->Seasoning().amount < 0.7) {
-								Toast("Salt the meat first");
+								Toast(Tr("Salt the meat first"));
 								PutBack(ui);
 								break;
 							}
 							if (g_fire.Logs() == 0) {
-								Toast("Put firewood on the fire first");
+								Toast(Tr("Put firewood on the fire first"));
 								PutBack(ui);
 								break;
 							}
@@ -2674,7 +2675,7 @@ namespace Cook
 								waiting |= d.dice && d.at != Unit::At::Pot && d.at != Unit::At::Dough;
 							}
 							if (waiting) {
-								Toast("Cut the garlic first, and into its bowl");
+								Toast(Tr("Cut the garlic first, and into its bowl"));
 								PutBack(ui);
 								break;
 							}
@@ -2690,7 +2691,7 @@ namespace Cook
 						if (u.dice) {
 							// cut on the board first (while the board's free of dough)
 							if (P.board >= 0 && OverBoard(mx, my, lx, ly) && !g_doughOnBoard && OneOnBoard()) {
-								Toast("One at a time: into its bowl with what's on the board first");
+								Toast(Tr("One at a time: into its bowl with what's on the board first"));
 								PutBack(ui);
 								break;
 							}
@@ -2701,9 +2702,9 @@ namespace Cook
 									u.lane = lane;
 									break;
 								}
-								Toast(g_doughOnBoard ? "The dough has the board: cut it first next time" : "The board is full");
+								Toast(g_doughOnBoard ? Tr("The dough has the board: cut it first next time") : Tr("The board is full"));
 							} else {
-								Toast(fmt::format("Cut the {} on the board first", u.name));
+								Toast(TrF("Cut the {} on the board first", u.name));
 							}
 							PutBack(ui);
 							break;
@@ -2715,7 +2716,7 @@ namespace Cook
 								g_buttered = true;
 								Audio::Take("knead_", 0.45f);
 							} else {
-								Toast(BreadOnBoard() ? "Cut the bread first, then butter it" : "Butter goes on the cut bread");
+								Toast(BreadOnBoard() ? Tr("Cut the bread first, then butter it") : Tr("Butter goes on the cut bread"));
 								PutBack(ui);
 							}
 							break;
@@ -2730,7 +2731,7 @@ namespace Cook
 								}
 							}
 							if (waiting) {
-								Toast(fmt::format("Cut the {} first, and into its bowl", what));
+								Toast(TrF("Cut the {} first, and into its bowl", what));
 								PutBack(ui);
 								break;
 							}
@@ -2738,7 +2739,7 @@ namespace Cook
 							std::string ln = u.name;
 							std::transform(ln.begin(), ln.end(), ln.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 							if (const auto before = MustGoFirst(ln); !before.empty()) {
-								Toast(fmt::format("The {} goes in first", before));
+								Toast(TrF("The {} goes in first", before));
 								PutBack(ui);
 								break;
 							}
@@ -2763,7 +2764,7 @@ namespace Cook
 							break;
 						}
 						if (u.role == Role::Dough) {
-							Toast(g_bowlWater ? "Into the bowl of water, to make the dough" : "Into the mixing bowl, to make the dough");
+							Toast(g_bowlWater ? Tr("Into the bowl of water, to make the dough") : Tr("Into the mixing bowl, to make the dough"));
 							PutBack(ui);
 							break;
 						}
@@ -2811,13 +2812,13 @@ namespace Cook
 			case Hold::Log:
 				if (g_flow == hc::Flow::Pot && OverFire(mx, my) && g_fire.Logs() == 0 &&
 					(!AllInPot() || (g_recipe && g_recipe->salted && g_pot && g_pot->Seasoning().amount < 0.7))) {
-					Toast(!AllInPot() ? "Everything into the pot first, then the firewood under it" : "Salt it first, then the firewood under it");
+					Toast(!AllInPot() ? Tr("Everything into the pot first, then the firewood under it") : Tr("Salt it first, then the firewood under it"));
 				} else if (OverFire(mx, my) && g_fire.AddLog()) {
 					Audio::Take("log_", 0.8f);
 					static const float spark[4] = { 1.0f, 0.55f, 0.15f, 1.0f };
 					Spray(FireCenter() + Vec3{ 0, 0, 1.0 }, 18, spark, 4.0, 12.0, 0.12f, false, Render3D::Sprite::Kind::Ember, 1.2);
 				} else if (OverFire(mx, my)) {
-					Toast("The fire can't take another log");
+					Toast(Tr("The fire can't take another log"));
 				}
 				break;
 			case Hold::FireLog:
@@ -2839,7 +2840,7 @@ namespace Cook
 					double lx = 0, ly = 0;
 					if (P.board >= 0 && OverBoard(mx, my, lx, ly)) {
 						if (AnyOnBoard()) {
-							Toast("Clear the board first");
+							Toast(Tr("Clear the board first"));
 						} else {
 							g_doughOnBoard = true;
 							Flour(g_doughAt);
@@ -2855,7 +2856,7 @@ namespace Cook
 						Audio::Take("splash_", 0.6f);
 						Serve();
 					} else {
-						Toast("There's nothing in the pot yet");
+						Toast(Tr("There's nothing in the pot yet"));
 					}
 				}
 				break;
@@ -2876,7 +2877,7 @@ namespace Cook
 						g_spit->Seasoning().amount += g_pinch;
 						hit = true;
 					} else if (g_flow == hc::Flow::Oven && P.mixBowl >= 0 && !g_doughOnBoard && OverMix(mx, my) && CutsWaiting()) {
-						Toast("Pour in what's in the right bowl first, then the salt");
+						Toast(Tr("Pour in what's in the right bowl first, then the salt"));
 						target = { g_carry.x, g_carry.y, 0.0 };
 						hit = false;
 						g_pinch = 0;
@@ -2925,10 +2926,10 @@ namespace Cook
 				}
 				if (g_peelLoaded && NearScreen(MouthAt(), mx, my, 6.0, 50.0f)) {
 					if (g_fire.Logs() == 0) {
-						Toast("Put firewood in the oven first");
+						Toast(Tr("Put firewood in the oven first"));
 						g_peelLoaded = false;
 					} else if (g_door < 0.6) {
-						Toast("Open the oven door first");
+						Toast(Tr("Open the oven door first"));
 						g_peelLoaded = false;  // the dough slides back onto the board
 					} else {
 						g_peelFrom = g_peelAt;
@@ -2937,7 +2938,7 @@ namespace Cook
 					}
 				} else if (g_peelLoaded) {
 					g_peelLoaded = false;  // put down: the dough back on the board
-					Toast("Carry it into the open oven");
+					Toast(Tr("Carry it into the open oven"));
 				}
 				g_peelLoaded = g_peelLoaded && g_peelT >= 0;
 				break;
@@ -2946,9 +2947,9 @@ namespace Cook
 					double x = 0, y = 0;
 					const bool board = OnPlane(mx, my, kBoardTop + 1.0, x, y) && std::abs(x - L::kBoardX) < L::kBoardW * 0.5 + 1.0 && std::abs(y - L::kBoardY) < L::kBoardD * 0.5 + 1.0;
 					if (NearScreen(MouthAt(), mx, my, 6.0, 50.0f)) {
-						Toast("Use the peel: drag it under the dough, then into the oven");
+						Toast(Tr("Use the peel: drag it under the dough, then into the oven"));
 					} else if (board && g_strokeLen > 1.2 && !g_rolled && g_doughParts > 0 && g_oven->Pie() && g_oven->Dough() >= 0.9) {
-						Toast("Pick up the rolling pin to roll it out");
+						Toast(Tr("Pick up the rolling pin to roll it out"));
 					} else if (board && g_strokeLen > 1.2) {
 						DoughPush(g_strokeLen);  // a push: kneaded
 					}
@@ -2986,7 +2987,7 @@ namespace Cook
 				}
 				g_flat = (std::min)(1.0, g_flat + a_len / 30.0);
 				if (g_flat >= 1.0) {
-					Toast("Rolled out: now the filling");
+					Toast(Tr("Rolled out: now the filling"));
 					g_pinHeld = false;  // the pin back on the table
 					if (g_hold == Hold::Roll) {
 						g_hold = Hold::None;
@@ -3116,16 +3117,16 @@ namespace Cook
 							u.segs.clear();
 							u.fitted = false;
 							Fit(u);
-							Toast("Broken into its cloves: now dice them");
+							Toast(Tr("Broken into its cloves: now dice them"));
 							Audio::Take("knead_", 0.6f);
 							continue;
 						}
 						if (g_knifeAlong && u.thin) {
-							Toast(fmt::format("A {} is only cut across", u.name));
+							Toast(TrF("A {} is only cut across", u.name));
 							continue;
 						}
 						if ((g_knifeAlong ? u.cut.alongCount : u.cut.cutCount) >= hc::Cutting::kMaxCuts) {
-							Toast(g_knifeAlong ? "Six cuts along is enough" : "Six cuts across is enough");
+							Toast(g_knifeAlong ? Tr("Six cuts along is enough") : Tr("Six cuts across is enough"));
 							continue;
 						}
 						if (g_knifeAlong) {
@@ -3239,7 +3240,7 @@ namespace Cook
 					                                       : std::hypot(g_carry.x - g_doughAt.x, g_carry.y - g_doughAt.y) < 4.5 && (g_doughOnBoard || BreadOnBoard()));
 					g_bowlTip += Clamp((over && !g_bowlPoured ? 1.0 : 0.0) - g_bowlTip, -dt * 3.0, dt * 2.0);
 					if (g_bowlTip > 0.6 && !g_bowlPoured && BreadCuts() && g_doughParts < (std::max)(1, g_doughNeeded)) {
-						Toast("The milk, egg and flour go in first, then this");
+						Toast(Tr("The milk, egg and flour go in first, then this"));
 						g_hold = Hold::None;  // the bowl goes back
 					} else if (g_bowlTip > 0.6 && !g_bowlPoured && BreadCuts()) {
 						g_cutInMix = true;  // into the mixing bowl, after the dough's things, before the salt
@@ -3294,7 +3295,7 @@ namespace Cook
 						if (g_peelIn) {
 							g_oven->Load();
 							if (g_flow == hc::Flow::Oven) {
-								Toast("Shut the door, and let it bake");
+								Toast(Tr("Shut the door, and let it bake"));
 							}
 						}
 					}
@@ -4673,7 +4674,7 @@ namespace Cook
 						if (Recipes::CanMake(*r) > 0) {
 							StartCooking(r);
 						} else {
-							Toast("You don't have what it takes");
+							Toast(Tr("You don't have what it takes"));
 						}
 					}
 					break;
@@ -4752,8 +4753,8 @@ namespace Cook
 			Kit::SetMesh(Kit::Role::Knife, next);
 			Scene::Remove(P.knife);
 			P.knife = KitAdd(Kit::Role::Knife);
-			std::string shown = next == "ours" ? std::string("Hearthcooking's own") : next.substr(next.find_last_of("\\/") + 1);
-			Toast(fmt::format("Knife: {}", shown));
+			std::string shown = next == "ours" ? std::string(Tr("Hearthcooking's own")) : next.substr(next.find_last_of("\\/") + 1);
+			Toast(TrF("Knife: {}", shown));
 		}
 
 		void HandleKeys()
@@ -4815,7 +4816,7 @@ namespace Cook
 			if (!g_recipe) {
 				return s;
 			}
-			auto unitsDone = [&](Role a_role, std::initializer_list<Unit::At> a_where, const char* a_pre, const char* a_post) {
+			auto unitsDone = [&](Role a_role, std::initializer_list<Unit::At> a_where, const char* a_line) {
 				std::map<std::string, std::pair<int, int>> by;
 				for (const auto& u : g_units) {
 					if (u.role != a_role) {
@@ -4852,7 +4853,7 @@ namespace Cook
 					std::stable_sort(list.begin(), list.end(), [&](const auto& a_a, const auto& a_b) { return rank(a_a.first) < rank(a_b.first); });
 				}
 				for (const auto& [name, c] : list) {
-					s.push_back({ fmt::format("{}{}{}{}", a_pre, name, a_post, c.first > 1 ? fmt::format(" ({})", c.first) : ""), c.second >= c.first });
+					s.push_back({ TrF(a_line, name) + (c.first > 1 ? TrF(" ({})", c.first) : std::string()), c.second >= c.first });
 				}
 			};
 			if (g_flow == hc::Flow::Pot) {
@@ -4882,7 +4883,7 @@ namespace Cook
 								in += u.at == Unit::At::Pot;
 							}
 						}
-						s.push_back({ fmt::format("Tip in the {}{}", name, n > 1 ? fmt::format(" ({})", n) : ""), in >= n });
+						s.push_back({ TrF("Tip in the {}{}", name, n > 1 ? TrF(" ({})", n) : ""), in >= n });
 					}
 				}
 				if (SauceBowl()) {
@@ -4891,36 +4892,36 @@ namespace Cook
 					for (const auto& u : g_units) {
 						if (u.role == Role::Toss && Liquid(u)) {
 							anyL = true;
-							s.push_back({ fmt::format("Into the bowl: the {}", u.name), u.byBowl });
+							s.push_back({ TrF("Into the bowl: the {}", u.name), u.byBowl });
 							allIn &= u.at == Unit::At::Pot;
 						}
 					}
 					if (anyL) {
-						s.push_back({ "Pour the bowl into the pot", allIn });
+						s.push_back({ Tr("Pour the bowl into the pot"), allIn });
 					}
 					for (const auto& u : g_units) {
 						if (u.role == Role::Toss && !Liquid(u)) {
-							s.push_back({ fmt::format("Add the {}", u.name), u.at == Unit::At::Pot });
+							s.push_back({ TrF("Add the {}", u.name), u.at == Unit::At::Pot });
 						}
 					}
 				} else {
-					unitsDone(Role::Toss, { Unit::At::Pot }, "Add the ", "");
+					unitsDone(Role::Toss, { Unit::At::Pot }, N_("Add the {}"));
 				}
 				if (g_recipe->salted) {
-					s.push_back({ "A pinch of salt", g_pot && g_pot->Seasoning().amount >= 0.7 });
+					s.push_back({ Tr("A pinch of salt"), g_pot && g_pot->Seasoning().amount >= 0.7 });
 				}
-				s.push_back({ "Firewood under the pot", g_fire.Logs() > 0 || (g_pot && g_pot->Cooked() > 0.05) });
-				s.push_back({ "Keep it at a simmer, and stir", g_pot && g_pot->Cooked() >= 0.92 });
-				s.push_back({ "Ladle it into the bowl", g_served });
+				s.push_back({ Tr("Firewood under the pot"), g_fire.Logs() > 0 || (g_pot && g_pot->Cooked() > 0.05) });
+				s.push_back({ Tr("Keep it at a simmer, and stir"), g_pot && g_pot->Cooked() >= 0.92 });
+				s.push_back({ Tr("Ladle it into the bowl"), g_served });
 			} else if (g_flow == hc::Flow::Spit) {
 				if (g_recipe->salted) {
-					s.push_back({ "Salt the meat", g_spit && g_spit->Seasoning().amount >= 0.7 });
+					s.push_back({ Tr("Salt the meat"), g_spit && g_spit->Seasoning().amount >= 0.7 });
 				}
-				s.push_back({ "Firewood onto the fire", g_fire.Logs() > 0 || Mounted() > 0 });
-				unitsDone(Role::Meat, { Unit::At::Spit }, "Put the ", " on the spit");
-				unitsDone(Role::Toss, { Unit::At::Gone }, "Rub in the ", "");
-				s.push_back({ "Turn it over the fire", g_spit && g_spit->Mean() >= 0.9 });
-				s.push_back({ "Take it off onto the plate", g_served });
+				s.push_back({ Tr("Firewood onto the fire"), g_fire.Logs() > 0 || Mounted() > 0 });
+				unitsDone(Role::Meat, { Unit::At::Spit }, N_("Put the {} on the spit"));
+				unitsDone(Role::Toss, { Unit::At::Gone }, N_("Rub in the {}"));
+				s.push_back({ Tr("Turn it over the fire"), g_spit && g_spit->Mean() >= 0.9 });
+				s.push_back({ Tr("Take it off onto the plate"), g_served });
 			} else {
 				// a pie's fruit is cut first and waits in a bowl
 				bool anyDice = false, allInBowl = true, allOnDough = true;
@@ -4940,11 +4941,11 @@ namespace Cook
 					s.push_back({ DiceLine(name, c.first), c.second >= c.first });
 				}
 				if (anyDice) {
-					s.push_back({ BreadCuts() ? "Sweep it into the right bowl" : "Sweep it into the bowl", allInBowl });
+					s.push_back({ BreadCuts() ? Tr("Sweep it into the right bowl") : Tr("Sweep it into the bowl"), allInBowl });
 				}
 				if (g_doughNeeded > 0) {
 					const std::size_t from = s.size();
-					unitsDone(Role::Dough, { Unit::At::Dough }, g_bowlWater ? "Into the water: the " : "Into the bowl: the ", g_bowlWater ? "" : "");
+					unitsDone(Role::Dough, { Unit::At::Dough }, g_bowlWater ? N_("Into the water: the {}") : N_("Into the bowl: the {}"));
 					if (anyDice && BreadCuts()) {
 						// a bread's cut things (a potato bread's potato) poured in after the flour
 						std::size_t at = s.size();
@@ -4955,23 +4956,23 @@ namespace Cook
 								at = k + 1;
 							}
 						}
-						s.insert(s.begin() + static_cast<std::ptrdiff_t>(at), CardLine{ "Pour the right bowl into the left bowl", g_cutInMix });
+						s.insert(s.begin() + static_cast<std::ptrdiff_t>(at), CardLine{ Tr("Pour the right bowl into the left bowl"), g_cutInMix });
 					}
 				}
 				if (g_recipe->salted) {
-					s.push_back({ "A pinch of salt", g_oven && g_oven->Seasoning().amount >= 0.7 });
+					s.push_back({ Tr("A pinch of salt"), g_oven && g_oven->Seasoning().amount >= 0.7 });
 				}
 				if (g_doughNeeded > 0) {
-					s.push_back({ "Stir it into a dough", g_ball });
-					s.push_back({ "Onto the board", g_doughOnBoard });
-					s.push_back({ "Knead the dough", g_oven && g_oven->Dough() >= 0.9 });
+					s.push_back({ Tr("Stir it into a dough"), g_ball });
+					s.push_back({ Tr("Onto the board"), g_doughOnBoard });
+					s.push_back({ Tr("Knead the dough"), g_oven && g_oven->Dough() >= 0.9 });
 					if (g_recipe->pie) {
-						s.push_back({ "Pick up rolling pin and flatten to shape", g_flat >= 1.0 });
+						s.push_back({ Tr("Pick up rolling pin and flatten to shape"), g_flat >= 1.0 });
 					}
 				}
 				if (g_recipe->pie) {
 					if (anyDice) {
-						s.push_back({ "Heap the filling on the dough", allOnDough });
+						s.push_back({ Tr("Heap the filling on the dough"), allOnDough });
 					}
 					bool other = false;
 					for (const auto& u : g_units) {
@@ -4980,35 +4981,35 @@ namespace Cook
 					if (other) {
 						for (const auto& u : g_units) {
 							if (u.role == Role::Filling && !u.dice) {
-								s.push_back({ fmt::format("Add the {}", u.name), u.at == Unit::At::Dough });
+								s.push_back({ TrF("Add the {}", u.name), u.at == Unit::At::Dough });
 							}
 						}
 						(void)anyDice;  // (no spreading: the filling covers the inside as it goes in)
 					}
-					s.push_back({ Dumpling() ? "Fold the four corners in over it" : Crostata() ? "Fold the edge in over the fruit" : "Crimp the edge", g_oven && g_oven->Crimped() >= 0.9 });
+					s.push_back({ Dumpling() ? Tr("Fold the four corners in over it") : Crostata() ? Tr("Fold the edge in over the fruit") : Tr("Crimp the edge"), g_oven && g_oven->Crimped() >= 0.9 });
 				} else {
 					if (g_topping) {
 						bool topped = true;
 						for (const auto& u : g_units) {
 							topped &= !u.dice || u.at == Unit::At::Dough;
 						}
-						s.push_back({ g_recipe->makes > 1 ? fmt::format("Cut the bread into {} slices", g_recipe->makes) : std::string("Cut the bread into slices"), BreadCut() });
-						s.push_back({ "Butter it", g_buttered });
-						s.push_back({ "The garlic on top", topped });
+						s.push_back({ g_recipe->makes > 1 ? TrF("Cut the bread into {} slices", g_recipe->makes) : std::string(Tr("Cut the bread into slices")), BreadCut() });
+						s.push_back({ Tr("Butter it"), g_buttered });
+						s.push_back({ Tr("The garlic on top"), topped });
 					} else {
 						for (const auto& u : g_units) {
 							if (u.role == Role::Filling && !u.dice) {
-								s.push_back({ fmt::format("Work in the {}", u.name), u.at == Unit::At::Dough });
+								s.push_back({ TrF("Work in the {}", u.name), u.at == Unit::At::Dough });
 							}
 						}
 					}
 				}
-				s.push_back({ "Firewood into the oven", g_fire.Logs() > 0 || (g_oven && (g_oven->InOven() || g_oven->Out())) });
-				s.push_back({ "Into the oven with the peel", g_oven && (g_oven->InOven() || g_oven->Out()) });
-				s.push_back({ "Close the oven door", g_doorShut });
-				s.push_back({ "Bake it golden", g_oven && g_oven->Brown() >= 0.85 });
-				s.push_back({ "Open the oven door", g_doorReopened });
-				s.push_back({ "Out with the peel onto the plate", g_served });
+				s.push_back({ Tr("Firewood into the oven"), g_fire.Logs() > 0 || (g_oven && (g_oven->InOven() || g_oven->Out())) });
+				s.push_back({ Tr("Into the oven with the peel"), g_oven && (g_oven->InOven() || g_oven->Out()) });
+				s.push_back({ Tr("Close the oven door"), g_doorShut });
+				s.push_back({ Tr("Bake it golden"), g_oven && g_oven->Brown() >= 0.85 });
+				s.push_back({ Tr("Open the oven door"), g_doorReopened });
+				s.push_back({ Tr("Out with the peel onto the plate"), g_served });
 			}
 			return s;
 		}
@@ -5020,48 +5021,48 @@ namespace Cook
 			}
 			switch (g_hold) {
 			case Hold::Ingredient:
-				return g_flow == hc::Flow::Pot ? "Onto the board to chop it, or into the pot as it is" : g_flow == hc::Flow::Spit ? "Onto the spit, or rub it on what's there" : "Onto the board";
+				return g_flow == hc::Flow::Pot ? Tr("Onto the board to chop it, or into the pot as it is") : g_flow == hc::Flow::Spit ? Tr("Onto the spit, or rub it on what's there") : Tr("Onto the board");
 			case Hold::Log:
-				return "Into the fire for more heat";
+				return Tr("Into the fire for more heat");
 			case Hold::FireLog:
-				return "Drop it anywhere to take the heat down (back on the fire to keep it)";
+				return Tr("Drop it anywhere to take the heat down (back on the fire to keep it)");
 			case Hold::Board:
-				return g_flow == hc::Flow::Oven ? "Its right end over the empty bowl: it tips in" : "Drag right to tip it into the pot; up and down to line it up";
+				return g_flow == hc::Flow::Oven ? Tr("Its right end over the empty bowl: it tips in") : Tr("Drag right to tip it into the pot; up and down to line it up");
 			case Hold::Ladle:
-				return Overlay::UsingPad() ? "Circle the right stick to stir. Left stick lifts it out to the bowl when it's done" : "Round and round. Lift it out to the bowl when it's done";
+				return Overlay::UsingPad() ? Tr("Circle the right stick to stir. Left stick lifts it out to the bowl when it's done") : Tr("Round and round. Lift it out to the bowl when it's done");
 			case Hold::LadleOut:
-				return "Over the bowl to serve, or back into the pot";
+				return Tr("Over the bowl to serve, or back into the pot");
 			case Hold::Salt:
-				return "Hold for a bigger pinch. Let go over the dish";
+				return Tr("Hold for a bigger pinch. Let go over the dish");
 			case Hold::Crank:
-				return Overlay::UsingPad() ? "Circle the right stick to turn it: a quarter turn every few seconds is plenty" : "Turn it round: a quarter turn every few seconds is plenty";
+				return Overlay::UsingPad() ? Tr("Circle the right stick to turn it: a quarter turn every few seconds is plenty") : Tr("Turn it round: a quarter turn every few seconds is plenty");
 			case Hold::Meat:
-				return "Onto the plate to serve, or back on the spit";
+				return Tr("Onto the plate to serve, or back on the spit");
 			case Hold::Dough:
-				return g_oven && g_oven->Pie() && g_oven->Dough() >= 0.9 ? "Roll it out with the rolling pin" : "A long push to knead";
+				return g_oven && g_oven->Pie() && g_oven->Dough() >= 0.9 ? Tr("Roll it out with the rolling pin") : Tr("A long push to knead");
 			case Hold::Roll:
-				return Dumpling() ? "Hold and roll it about over the dough, out square" : "Hold and roll it about over the dough, out round";
+				return Dumpling() ? Tr("Hold and roll it about over the dough, out square") : Tr("Hold and roll it about over the dough, out round");
 			case Hold::Mix:
-				return Overlay::UsingPad() ? "Circle the right stick, round and round until it comes together" : "Round and round until it comes together";
+				return Overlay::UsingPad() ? Tr("Circle the right stick, round and round until it comes together") : Tr("Round and round until it comes together");
 			case Hold::Ball:
-				return "Onto the board";
+				return Tr("Onto the board");
 			case Hold::Apples:
-				return "Over the dough: it tips and pours";
+				return Tr("Over the dough: it tips and pours");
 			case Hold::Peel:
-				return g_peelBread ? "Onto the plate" : g_peelLoaded ? "Into the open oven" : g_oven && g_oven->InOven() ? "Into the open oven to take it out" : "Slide it under the dough";
+				return g_peelBread ? Tr("Onto the plate") : g_peelLoaded ? Tr("Into the open oven") : g_oven && g_oven->InOven() ? Tr("Into the open oven to take it out") : Tr("Slide it under the dough");
 			case Hold::Spread:
-				return "Spread it out to the edge";
+				return Tr("Spread it out to the edge");
 			case Hold::Crimp:
-				return g_foldSide >= 0 ? "Draw the corner in, over the filling" : "Pinch your way all round the edge";
+				return g_foldSide >= 0 ? Tr("Draw the corner in, over the filling") : Tr("Pinch your way all round the edge");
 			case Hold::Door:
-				return "Left to open, right to shut";
+				return Tr("Left to open, right to shut");
 			case Hold::Bread:
-				return "Onto the plate";
+				return Tr("Onto the plate");
 			default:
 				break;
 			}
 			if (g_flow == hc::Flow::Pot && g_pot && !g_served && g_hold == Hold::None && g_pot->Cooked() >= 0.92) {
-				return "It's ready: drag the ladle out of the pot and let go over the bowl";
+				return Tr("It's ready: drag the ladle out of the pot and let go over the bowl");
 			}
 			if (g_flow == hc::Flow::Oven && g_hold == Hold::None && AnyOnBoard()) {
 				bool cut = true;
@@ -5069,19 +5070,19 @@ namespace Cook
 					cut &= u.at != Unit::At::Board || u.cut.cutCount + u.cut.alongCount > 0;
 				}
 				if (cut && !g_knifeOn) {
-					return "Lift the board by its left end and carry it over the empty bowl";
+					return Tr("Lift the board by its left end and carry it over the empty bowl");
 				}
 				if (cut) {
-					return "Cut more, or lift the board by its left end and carry it over the empty bowl";
+					return Tr("Cut more, or lift the board by its left end and carry it over the empty bowl");
 				}
 			}
 			if (g_knifeOn) {
 				if (Overlay::UsingPad()) {
-					return g_knifeAlong ? fmt::format("{} to cut along it. {} turns the knife back across", Btn("A"), Btn("RB"))
-					                    : fmt::format("{} to chop across. {} turns the knife to cut along: both ways makes dice", Btn("A"), Btn("RB"));
+					return g_knifeAlong ? TrF("{} to cut along it. {} turns the knife back across", Btn("A"), Btn("RB"))
+					                    : TrF("{} to chop across. {} turns the knife to cut along: both ways makes dice", Btn("A"), Btn("RB"));
 				}
-				return g_knifeAlong ? "Click to cut along it. Right-click (or R) turns the knife back across"
-				                    : "Click to chop across. Right-click (or R) turns the knife to cut along: both ways makes dice";
+				return g_knifeAlong ? Tr("Click to cut along it. Right-click (or R) turns the knife back across")
+				                    : Tr("Click to chop across. Right-click (or R) turns the knife to cut along: both ways makes dice");
 			}
 			for (const auto& st : Steps()) {
 				if (!st.done) {
@@ -5102,7 +5103,7 @@ namespace Cook
 			auto* dl = ImGui::GetWindowDrawList();
 			Sheet(dl, lp, ImVec2(pw, ph), 0);
 			float y = lp.y + S(28);
-			TextC(dl, F.bookSC, lp.x + pw * 0.5f, y, kInk, g_ovenStation ? "The Oven" : "The Cooking Pot");
+			TextC(dl, F.bookSC, lp.x + pw * 0.5f, y, kInk, g_ovenStation ? Tr("The Oven") : Tr("The Cooking Pot"));
 			y += S(42);
 			FadeRule(dl, lp.x + S(40), lp.x + pw - S(40), y, 0.5f, kInkSoft);
 			y += S(12);
@@ -5120,7 +5121,7 @@ namespace Cook
 			}
 			s_first = std::clamp(s_first, 0, (std::max)(0, static_cast<int>(g_book.size()) - visible));
 			if (g_book.empty()) {
-				Para(dl, F.bookIt, lp.x + S(40), y + S(10), pw - S(80), kInkSoft, "You know no recipes for this, yet.");
+				Para(dl, F.bookIt, lp.x + S(40), y + S(10), pw - S(80), kInkSoft, Tr("You know no recipes for this, yet."));
 			}
 			for (int i = s_first; i < static_cast<int>(g_book.size()) && i < s_first + visible; ++i) {
 				const auto*  r = g_book[i];
@@ -5141,8 +5142,8 @@ namespace Cook
 				Text(dl, F.book, ImVec2(a.x + S(14), a.y + (rowH - F.book->FontSize) * 0.5f), can ? kInk : Alpha(kInkSoft, 0.6f), r->name);
 				bool              any = false;
 				const auto        best = Recipes::Best(*r, any);
-				const char*       mark = r->flow == hc::Flow::Pot ? "pot" : r->flow == hc::Flow::Spit ? "spit" : "oven";
-				const std::string tag = any ? fmt::format("{} - {}", mark, hc::TierName(best)) : mark;
+				const std::string mark = r->flow == hc::Flow::Pot ? Tr("pot") : r->flow == hc::Flow::Spit ? Tr("spit") : Tr("oven");
+				const std::string tag = any ? fmt::format("{} - {}", mark, Tr(hc::TierName(best))) : mark;
 				const float       tagX = b.x - Measure(F.bookIt, tag, 0) - S(4);
 				Text(dl, F.bookIt, ImVec2(tagX, a.y + (rowH - F.bookIt->FontSize) * 0.5f), Alpha(any && best == hc::Tier::Masterwork ? kRubric : kInkSoft, can ? 1.0f : 0.6f), tag);
 				// where it's from, small after the name, when there's room before the tag
@@ -5166,18 +5167,18 @@ namespace Cook
 				float       ry = rp.y + S(30);
 				TextC(dl, F.bookSC, rp.x + pw * 0.5f, ry, kInk, r->name);
 				ry += S(40);
-				const char* how = r->flow == hc::Flow::Pot ? "In the pot: chopped, simmered and stirred" : r->flow == hc::Flow::Spit ? "On the spit, turned over the fire"
-				                : r->pie                    ? "A pie: dough, filling, a crimped edge, baked"
-				                                            : "Kneaded and baked in the oven";
+				const std::string how = r->flow == hc::Flow::Pot ? Tr("In the pot: chopped, simmered and stirred") : r->flow == hc::Flow::Spit ? Tr("On the spit, turned over the fire")
+				                : r->pie                    ? Tr("A pie: dough, filling, a crimped edge, baked")
+				                                            : Tr("Kneaded and baked in the oven");
 				TextC(dl, F.bookIt, rp.x + pw * 0.5f, ry, kInkSoft, how);
 				if (!r->source.empty()) {
 					ry += S(22);
-					TextC(dl, F.bookIt, rp.x + pw * 0.5f, ry, Alpha(kInkSoft, 0.75f), "From " + r->source);
+					TextC(dl, F.bookIt, rp.x + pw * 0.5f, ry, Alpha(kInkSoft, 0.75f), TrF("From {}", r->source));
 				}
 				ry += S(34);
 				FadeRule(dl, rp.x + S(40), rp.x + pw - S(40), ry, 0.5f, kInkSoft);
 				ry += S(18);
-				Text(dl, F.bookSCsm, ImVec2(rp.x + S(44), ry), kRubric, "You will need", 0.06f);
+				Text(dl, F.bookSCsm, ImVec2(rp.x + S(44), ry), kRubric, Tr("You will need"), 0.06f);
 				ry += S(28);
 				for (const auto& in : r->ings) {
 					const int   have = Recipes::Held(in.form);
@@ -5190,25 +5191,25 @@ namespace Cook
 				}
 				ry += S(10);
 				if (r->makes > 1) {
-					Text(dl, F.bookIt, ImVec2(rp.x + S(52), ry), kInkSoft, fmt::format("Makes {}", r->makes));
+					Text(dl, F.bookIt, ImVec2(rp.x + S(52), ry), kInkSoft, TrF("Makes {}", r->makes));
 					ry += S(26);
 				}
 				bool       any = false;
 				const auto best = Recipes::Best(*r, any);
-				Text(dl, F.bookIt, ImVec2(rp.x + S(52), ry), kInkSoft, any ? fmt::format("Your best: {}", hc::TierName(best)) : "Not made by hand yet");
+				Text(dl, F.bookIt, ImVec2(rp.x + S(52), ry), kInkSoft, any ? TrF("Your best: {}", Tr(hc::TierName(best))) : Tr("Not made by hand yet"));
 				const bool can = Recipes::CanMake(*r) > 0;
 				const float by = rp.y + ph - S(118);
-				if (MenuBtnInk("cook", "Cook by hand", rp.x + pw * 0.5f, by, can)) {
+				if (MenuBtnInk("cook", Tr("Cook by hand"), rp.x + pw * 0.5f, by, can)) {
 					Post(Act::CookByHand);
 				}
-				if (MenuBtnInk("quick", "Quick cook (plain)", rp.x + pw * 0.5f, by + S(44), true)) {
+				if (MenuBtnInk("quick", Tr("Quick cook (plain)"), rp.x + pw * 0.5f, by + S(44), true)) {
 					Post(Act::QuickCook);
 				}
 			}
 			ImGui::End();
 			// leave, bottom centre
 			BeginArea("##leave", ImVec2(W * 0.5f - S(120), H - S(70)), ImVec2(S(240), S(50)));
-			if (MenuButton("leave", "Leave", W * 0.5f, H - S(62))) {
+			if (MenuButton("leave", Tr("Leave"), W * 0.5f, H - S(62))) {
 				Post(Act::Leave);
 			}
 			ImGui::End();
@@ -5310,15 +5311,15 @@ namespace Cook
 			struct Key
 			{
 				const char* key;
-				const char* label;
+				std::string label;
 				Act         act;
 			};
 			const bool pad = Overlay::UsingPad();
 			// the knife can be swapped from here while there's one in the kitchen
 			const bool knife = g_phase == Phase::Cooking && P.knife >= 0;
-			const Key  keys[4] = { { pad ? Btn("LB") : "N", "Knife", Act::Knife }, { pad ? Btn("X") : "H", "How to cook", Act::Help },
-				 { pad ? Btn("Back") : "M", Audio::Muted() ? "Sound (muted)" : "Sound", Act::Mute },
-				 { pad ? Btn("Y") : "Tab", g_phase == Phase::Cooking ? "Put it aside" : "Leave", g_phase == Phase::Cooking ? Act::Abandon : Act::Leave } };
+			const Key  keys[4] = { { pad ? Btn("LB") : "N", Tr("Knife"), Act::Knife }, { pad ? Btn("X") : "H", Tr("How to cook"), Act::Help },
+				 { pad ? Btn("Back") : "M", Audio::Muted() ? Tr("Sound (muted)") : Tr("Sound"), Act::Mute },
+				 { pad ? Btn("Y") : "Tab", g_phase == Phase::Cooking ? Tr("Put it aside") : Tr("Leave"), g_phase == Phase::Cooking ? Act::Abandon : Act::Leave } };
 			const int first = knife ? 0 : 1, count = 4;
 			float     widths[4]{}, total = 0;
 			for (int k = first; k < count; ++k) {
@@ -5373,7 +5374,7 @@ namespace Cook
 		}
 		// "click", or the controller's own
 		std::string ClickWord() { return Overlay::UsingPad() ? fmt::format("press {}", Btn("A")) : std::string("click"); }
-		std::string HoldWord() { return Overlay::UsingPad() ? fmt::format("hold {}", Btn("A")) : std::string("hold the button"); }
+		std::string HoldWord() { return Overlay::UsingPad() ? TrF("hold {}", Btn("A")) : std::string(Tr("hold the button")); }
 
 		// With a controller: while stirring or turning, the right stick goes round the pot, the bowl or the crank
 		void PadOrbit()
@@ -5424,12 +5425,12 @@ namespace Cook
 		{
 			double v = -1.0, lo = 0.9, hi = 1.3, top = 2.0;
 			Vec3   at;
-			const char* warn = nullptr;
+			std::string warn;
 			if (g_flow == hc::Flow::Pot && g_pot && g_chunks.CountIn(hc::Chunks::State::Pot) + g_tossedIn > 0) {
 				v = g_pot->Cooked(), lo = 0.92, hi = 1.3, top = 2.0;
 				at = { L::kPotX, L::kPotY + L::kPotR + 1.5, L::kPotRim + 3.0 };
 				if (g_pot->Burn() > 0.25) {
-					warn = "Catching on the bottom: stir!";
+					warn = Tr("Catching on the bottom: stir!");
 				}
 			} else if (g_flow == hc::Flow::Spit && g_spit) {
 				bool on = false;
@@ -5440,7 +5441,7 @@ namespace Cook
 					v = g_spit->Mean(), lo = 0.9, hi = 1.3, top = 1.9;
 					at = { L::kFireX, L::kFireY + 4.0, L::kSpitZ + 7.0 };
 					if (g_spit->Spread() > 0.25 && g_hold != Hold::Crank) {  // (not while it's being turned)
-						warn = "One side's browner: keep turning";
+						warn = Tr("One side's browner: keep turning");
 					}
 				}
 			} else if (g_flow == hc::Flow::Oven && g_oven && g_oven->InOven()) {
@@ -5473,8 +5474,8 @@ namespace Cook
 			dl->AddTriangleFilled(ImVec2(mx - S(7), y0 - S(9)), ImVec2(mx + S(7), y0 - S(9)), ImVec2(mx, y0 + S(1)), IM_COL32(250, 240, 220, 250));
 			dl->AddLine(ImVec2(mx, y0), ImVec2(mx, y0 + h), IM_COL32(250, 240, 220, 250), S(2));
 			const bool  ready = v >= lo && v <= hi;
-			const char* word = v < lo * 0.65 ? "Raw" : v < lo ? "Nearly there" : v <= hi ? "Ready" : "Overdone";
-			const std::string label = warn ? fmt::format("{} - {}", word, warn) : std::string(word);
+			const std::string word = v < lo * 0.65 ? Tr("Raw") : v < lo ? Tr("Nearly there") : v <= hi ? Tr("Ready") : Tr("Overdone");
+			const std::string label = !warn.empty() ? fmt::format("{} - {}", word, warn) : word;
 			Text(dl, F.sans, ImVec2(x0, y0 - S(28)), ready ? IM_COL32(255, 220, 130, 255) : kWhite, label, 0.05f, 0.95f);
 			// where it goes, glowing once it's ready
 			if (ready || g_hold == Hold::LadleOut || g_hold == Hold::Meat || g_hold == Hold::Bread) {
@@ -5510,23 +5511,23 @@ namespace Cook
 			auto& v = Config::Edit();
 			struct Row
 			{
-				const char* label;
+				std::string label;
 				float*      value;
 			};
 			std::vector<Row> rows;
-			rows.push_back({ "All the kitchen's sounds", &v.volume });
-			rows.push_back({ "Fire and boiling", &v.ambience });
+			rows.push_back({ Tr("All the kitchen's sounds"), &v.volume });
+			rows.push_back({ Tr("Fire and boiling"), &v.ambience });
 			for (std::size_t k = 0; k < std::size(Config::kSoundNames); ++k) {
 				if (!v.soundLevels.count(Config::kSoundNames[k])) {
 					v.soundLevels[Config::kSoundNames[k]] = 1.0f;
 				}
-				rows.push_back({ Config::kSoundLabels[k], &v.soundLevels[Config::kSoundNames[k]] });
+				rows.push_back({ Tr(Config::kSoundLabels[k]), &v.soundLevels[Config::kSoundNames[k]] });
 			}
 			const float rowH = S(30), w = S(560), h = S(130) + rowH * (rows.size() + 1), x = W * 0.5f - w * 0.5f, y = (std::max)(S(40), H * 0.5f - h * 0.5f);
 			BeginArea("##sound", ImVec2(x, y), ImVec2(w, h));
 			auto* dl = ImGui::GetWindowDrawList();
 			MsgBox(dl, ImVec2(x, y), ImVec2(x + w, y + h));
-			TextC(dl, F.menu, W * 0.5f, y + S(22), kWhite, "SOUND", 0.26f);
+			TextC(dl, F.menu, W * 0.5f, y + S(22), kWhite, Tr("SOUND"), 0.26f);
 			float yy = y + S(70);
 			// all off at once
 			{
@@ -5535,7 +5536,7 @@ namespace Cook
 				if (Clicked("mute", ImVec2(x + S(32), yy), ImVec2(x + w - S(32), yy + rowH), &hov)) {
 					Audio::SetMuted(!muted);
 				}
-				Text(dl, F.sans, ImVec2(x + S(32), yy + (rowH - F.sans->FontSize) * 0.5f), hov ? kWhite : kGrey, muted ? "Muted: click to hear it again" : "Mute everything", 0.0f, 0.7f);
+				Text(dl, F.sans, ImVec2(x + S(32), yy + (rowH - F.sans->FontSize) * 0.5f), hov ? kWhite : kGrey, muted ? Tr("Muted: click to hear it again") : Tr("Mute everything"), 0.0f, 0.7f);
 				yy += rowH + S(6);
 			}
 			const float bx0 = x + S(300), bx1 = x + w - S(84);
@@ -5563,7 +5564,7 @@ namespace Cook
 				ImGui::PopID();
 				yy += rowH;
 			}
-			TextC(dl, F.sans, W * 0.5f, y + h - S(34), kDim, "M or Esc to close", 0.1f);
+			TextC(dl, F.sans, W * 0.5f, y + h - S(34), kDim, Tr("M or Esc to close"), 0.1f);
 			ImGui::End();
 		}
 
@@ -5572,28 +5573,28 @@ namespace Cook
 			const float w = S(520), x = W * 0.5f - w * 0.5f, y = S(110);
 			std::vector<std::string> lines;
 			if (Overlay::UsingPad()) {
-				lines.push_back(fmt::format("The left stick moves the hand (the right one finely). Hold {} or {} to pick things up; let go to put them down. {} puts back what you're holding.",
+				lines.push_back(TrF("The left stick moves the hand (the right one finely). Hold {} or {} to pick things up; let go to put them down. {} puts back what you're holding.",
 					Btn("A"), Btn("RT"), Btn("LT")));
-				lines.push_back(fmt::format("Stirring or turning the spit: circle the right stick. {} turns the knife to cut along; {} swaps the knife.", Btn("RB"), Btn("LB")));
+				lines.push_back(TrF("Stirring or turning the spit: circle the right stick. {} turns the knife to cut along; {} swaps the knife.", Btn("RB"), Btn("LB")));
 			} else {
-				lines.push_back("Hold the left button to pick things up; let go to put them down. The right button puts back what you're holding.");
+				lines.push_back(Tr("Hold the left button to pick things up; let go to put them down. The right button puts back what you're holding."));
 			}
 			if (g_flow == hc::Flow::Pot) {
-				lines.push_back("Drag ingredients onto the board and click to chop across them; right-click (or R) turns the knife to cut along them. Both ways makes dice: small and even scores best.");
-				lines.push_back("Grab the board by its left end and drag right to tip it into the pot. Line it up with the pot first.");
-				lines.push_back("Hold the ladle in the pot and stir round. When the meter says it's ready, drag the ladle out of the pot and let go over the bowl to serve.");
+				lines.push_back(Tr("Drag ingredients onto the board and click to chop across them; right-click (or R) turns the knife to cut along them. Both ways makes dice: small and even scores best."));
+				lines.push_back(Tr("Grab the board by its left end and drag right to tip it into the pot. Line it up with the pot first."));
+				lines.push_back(Tr("Hold the ladle in the pot and stir round. When the meter says it's ready, drag the ladle out of the pot and let go over the bowl to serve."));
 			} else if (g_flow == hc::Flow::Spit) {
-				lines.push_back("Drag the meat onto the spit. Hold the crank's handle and turn it round so every side faces the fire.");
-				lines.push_back("Drag the roast onto the plate when it's brown all over.");
+				lines.push_back(Tr("Drag the meat onto the spit. Hold the crank's handle and turn it round so every side faces the fire."));
+				lines.push_back(Tr("Drag the roast onto the plate when it's brown all over."));
 			} else {
-				lines.push_back("A pie's fruit first: dice it on the board, then drag the board by its left end over the bowl behind it to sweep it in.");
-				lines.push_back("Drag the flour, butter and the rest into the bowl of water and stir round until it's a ball; lift it onto the board and knead: long pushes, in a steady rhythm.");
+				lines.push_back(Tr("A pie's fruit first: dice it on the board, then drag the board by its left end over the bowl behind it to sweep it in."));
+				lines.push_back(Tr("Drag the flour, butter and the rest into the bowl of water and stir round until it's a ball; lift it onto the board and knead: long pushes, in a steady rhythm."));
 				if (g_recipe && g_recipe->pie) {
-					lines.push_back("Drag the bowl of filling over the dough to heap it on. A dumpling: take each side of the dough and draw it in over the filling. A pie: pinch round the edge to crimp it.");
+					lines.push_back(Tr("Drag the bowl of filling over the dough to heap it on. A dumpling: take each side of the dough and draw it in over the filling. A pie: pinch round the edge to crimp it."));
 				}
-				lines.push_back("Open the door (drag it left). Drag the peel under the dough, carry it into the mouth, shut the door. Peek, but each peek lets the heat out.");
+				lines.push_back(Tr("Open the door (drag it left). Drag the peel under the dough, carry it into the mouth, shut the door. Peek, but each peek lets the heat out."));
 			}
-			lines.push_back("The meter shows how done it is; there's no gauge for the heat: watch the flames. Logs from the pile make it hotter; once in, they stay in, so don't overdo it.");
+			lines.push_back(Tr("The meter shows how done it is; there's no gauge for the heat: watch the flames. Logs from the pile make it hotter; once in, they stay in, so don't overdo it."));
 			float h = S(80);
 			for (const auto& l : lines) {
 				h += F.sans->CalcTextSizeA(F.sans->FontSize, FLT_MAX, w - S(64), l.c_str()).y + S(10);
@@ -5601,7 +5602,7 @@ namespace Cook
 			BeginArea("##help", ImVec2(x, y), ImVec2(w, h));
 			auto* dl = ImGui::GetWindowDrawList();
 			MsgBox(dl, ImVec2(x, y), ImVec2(x + w, y + h));
-			TextC(dl, F.menu, W * 0.5f, y + S(22), kWhite, "HOW TO COOK", 0.26f);
+			TextC(dl, F.menu, W * 0.5f, y + S(22), kWhite, Tr("HOW TO COOK"), 0.26f);
 			float yy = y + S(64);
 			for (const auto& l : lines) {
 				yy += Para(dl, F.sans, x + S(32), yy, w - S(64), kGrey, l) + S(10);
@@ -5615,9 +5616,9 @@ namespace Cook
 			BeginArea("##confirm", ImVec2(x, y), ImVec2(w, h));
 			auto* dl = ImGui::GetWindowDrawList();
 			MsgBox(dl, ImVec2(x, y), ImVec2(x + w, y + h));
-			TextC(dl, F.menu, W * 0.5f, y + S(26), kWhite, "PUT THIS DISH ASIDE?", 0.2f);
-			TextC(dl, F.sans, W * 0.5f, y + S(66), kGrey, "Nothing is used up. You can start again.");
-			switch (MenuButtons("confirm", { { "Put it aside", true }, { "Keep cooking", false } }, W * 0.5f, y + h - S(56))) {
+			TextC(dl, F.menu, W * 0.5f, y + S(26), kWhite, Tr("PUT THIS DISH ASIDE?"), 0.2f);
+			TextC(dl, F.sans, W * 0.5f, y + S(66), kGrey, Tr("Nothing is used up. You can start again."));
+			switch (MenuButtons("confirm", { { Tr("Put it aside"), true }, { Tr("Keep cooking"), false } }, W * 0.5f, y + h - S(56))) {
 			case 0:
 				Post(Act::AbandonYes);
 				break;
@@ -5636,37 +5637,37 @@ namespace Cook
 			const std::string lab = a_l.label, v = a_l.verdict;
 			auto has = [&](const char* w) { return v.find(w) != std::string::npos; };
 			if (lab == "The cuts") {
-				return "Space your cuts evenly, for small pieces of a size";
+				return Tr("Space your cuts evenly, for small pieces of a size");
 			}
 			if (lab == "Into the pot") {
-				return "Line the board up over the pot before you tip it";
+				return Tr("Line the board up over the pot before you tip it");
 			}
 			if (lab == "The heat" || lab == "The fire" || lab == "The oven") {
-				return has("hot") ? "Fewer logs: let the fire settle before adding more" : "Add a log sooner, keep the flames lively";
+				return has("hot") ? Tr("Fewer logs: let the fire settle before adding more") : Tr("Add a log sooner, keep the flames lively");
 			}
 			if (lab == "The stirring") {
-				return has("Caught") ? "Stir more often, so nothing catches on the bottom" : "Keep the ladle moving round the pot";
+				return has("Caught") ? Tr("Stir more often, so nothing catches on the bottom") : Tr("Keep the ladle moving round the pot");
 			}
 			if (lab == "The salt") {
-				return has("salty") ? "A shorter pinch of salt" : "A pinch of salt: hold it about half a second";
+				return has("salty") ? Tr("A shorter pinch of salt") : Tr("A pinch of salt: hold it about half a second");
 			}
 			if (lab == "All the way round") {
-				return "Give the crank a quarter turn every few seconds, so no side sits too long facing the fire";
+				return Tr("Give the crank a quarter turn every few seconds, so no side sits too long facing the fire");
 			}
-			if (lab == "Done") {
+			if (lab == "How done") {
 				if (has("raw") || has("bloody") || has("Not quite") || has("Underdone")) {
-					return g_flow == hc::Flow::Spit ? "Leave it over the fire a little longer" : "Give it longer: wait for the meter's gold";
+					return g_flow == hc::Flow::Spit ? Tr("Leave it over the fire a little longer") : Tr("Give it longer: wait for the meter's gold");
 				}
-				return g_flow == hc::Flow::Spit ? "Take it off sooner, in the gold" : "Serve it sooner, while the meter's in the gold";
+				return g_flow == hc::Flow::Spit ? Tr("Take it off sooner, in the gold") : Tr("Serve it sooner, while the meter's in the gold");
 			}
 			if (lab == "The dough") {
-				return has("fits") ? "Knead in a steady rhythm" : has("Over") ? "Stop kneading once it's smooth" : "Knead longer, with long steady pushes";
+				return has("fits") ? Tr("Knead in a steady rhythm") : has("Over") ? Tr("Stop kneading once it's smooth") : Tr("Knead longer, with long steady pushes");
 			}
 			if (lab == "The filling") {
-				return has("open") ? "Close the whole edge before it goes in" : "Heap the filling right out to the edge";
+				return has("open") ? Tr("Close the whole edge before it goes in") : Tr("Heap the filling right out to the edge");
 			}
 			if (lab == "The bake") {
-				return has("Dark") ? "Open the door and take it out sooner" : "Leave it in the oven a little longer";
+				return has("Dark") ? Tr("Open the door and take it out sooner") : Tr("Leave it in the oven a little longer");
 			}
 			return {};
 		}
@@ -5679,7 +5680,7 @@ namespace Cook
 			const float  a = static_cast<float>(Clamp(t / 0.6, 0.0, 1.0));
 			const ImU32  tierCol = g_result.tier == hc::Tier::Masterwork ? kGold : g_result.tier == hc::Tier::Burnt ? IM_COL32(170, 150, 140, 255) : kWhite;
 			// the tier, big, as the game announces a level up
-			const auto title = Upper(hc::TierName(g_result.tier));
+			const auto title = Upper(Tr(hc::TierName(g_result.tier)));
 			const float ty = S(70);
 			if (g_result.tier == hc::Tier::Masterwork) {
 				Glow(bg, F.title, ImVec2(W * 0.5f - Measure(F.title, title, 0.12f) * 0.5f, ty), Alpha(kGold, 0.08f * a), title, 0.12f, S(8));
@@ -5688,7 +5689,7 @@ namespace Cook
 			DiamondRule(bg, W * 0.5f, ty + F.title->FontSize + S(12), S(520));
 			TextC(bg, F.menu, W * 0.5f, ty + F.title->FontSize + S(26), Alpha(kGrey, a), Upper(g_givenName + (g_recipe && g_recipe->makes > 1 ? fmt::format(" x{}", g_recipe->makes) : "")), 0.2f, 0.8f);
 			if (g_result.tier == hc::Tier::Burnt && *g_result.burntWhy) {
-				TextC(bg, F.sans, W * 0.5f, ty + F.title->FontSize + S(64), Alpha(IM_COL32(230, 170, 150, 255), a), g_result.burntWhy, 0.05f, 0.8f);
+				TextC(bg, F.sans, W * 0.5f, ty + F.title->FontSize + S(64), Alpha(IM_COL32(230, 170, 150, 255), a), Tr(g_result.burntWhy), 0.05f, 0.8f);
 			}
 			// how it went, on a card: each line marked as it helped or held it back; then what to do next time
 			std::vector<std::pair<double, std::string>> tips;
@@ -5714,7 +5715,7 @@ namespace Cook
 			auto* dl = ImGui::GetWindowDrawList();
 			Sheet(dl, pos, ImVec2(w, h), 1);
 			float y = pos.y + S(24);
-			TextC(dl, F.bookSC, pos.x + w * 0.5f, y, kInk, "How it went");
+			TextC(dl, F.bookSC, pos.x + w * 0.5f, y, kInk, Tr("How it went"));
 			y += S(42);
 			for (int i = 0; i < g_result.count; ++i) {
 				const auto& l = g_result.lines[i];
@@ -5722,15 +5723,16 @@ namespace Cook
 				// a mark: it helped (+), it was all right, or it held the dish back (-)
 				const char* mark = l.score >= 0.8 ? "+" : l.score >= 0.5 ? "~" : "-";
 				TextC(dl, F.bookSC, pos.x + S(26), y - S(1), c, mark);
-				Text(dl, F.bookSCsm, ImVec2(pos.x + S(44), y + S(4)), kRubric, l.label, 0.04f);
-				Text(dl, F.hand, ImVec2(pos.x + w - S(30) - Measure(F.hand, l.verdict, 0), y), c, l.verdict);
+				Text(dl, F.bookSCsm, ImVec2(pos.x + S(44), y + S(4)), kRubric, Tr(l.label), 0.04f);
+				const std::string verdict = Tr(l.verdict);
+				Text(dl, F.hand, ImVec2(pos.x + w - S(30) - Measure(F.hand, verdict, 0), y), c, verdict);
 				y += rowH;
 			}
 			if (!tips.empty()) {
 				y += S(10);
 				dl->AddLine(ImVec2(pos.x + S(30), y), ImVec2(pos.x + w - S(30), y), Alpha(kInkSoft, 0.35f), 1.0f * g_ui);
 				y += S(10);
-				Text(dl, F.bookSCsm, ImVec2(pos.x + S(30), y + S(2)), kRubric, "Next time", 0.04f);
+				Text(dl, F.bookSCsm, ImVec2(pos.x + S(30), y + S(2)), kRubric, Tr("Next time"), 0.04f);
 				y += S(24);
 				for (const auto& tp : tips) {
 					y += Para(dl, F.hand, pos.x + S(30), y, w - S(60), kInkSoft, tp.second) + S(6);
@@ -5738,7 +5740,7 @@ namespace Cook
 			}
 			ImGui::End();
 			BeginArea("##again", ImVec2(W * 0.5f - S(300), H - S(90)), ImVec2(S(600), S(60)));
-			switch (MenuButtons("result", { { "Cook another", false }, { "Done", false } }, W * 0.5f, H - S(80))) {
+			switch (MenuButtons("result", { { Tr("Cook another"), false }, { Tr("Done"), false } }, W * 0.5f, H - S(80))) {
 			case 0:
 				Post(Act::Again);
 				break;

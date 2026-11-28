@@ -18,3 +18,10 @@ Settings: Data\SKSE\Plugins\Hearthcooking.ini (or SKSE Menu Framework > Hearthco
 Set Enabled = 0 to switch it off and get the game's own menus back.
 
 Source and licence: GPL-3.0 (LICENSE.txt in this folder).
+
+Translations
+  The kitchen's words are read from Data\SKSE\Plugins\Hearthcooking\Translations\Hearthcooking_<LANGUAGE>.txt, the
+  language being the game's own (Skyrim.ini sLanguage: KOREAN, FRENCH...). Hearthcooking_ENGLISH.txt there lists every
+  line: copy it, rename it for your language and translate the text after each TAB. The notes at its top explain the
+  {} gaps. A line left out stays English. To force a language: Hearthcooking.ini [General] Language = KOREAN.
+  A translation patch is just that one file: no plugin, no DLL.

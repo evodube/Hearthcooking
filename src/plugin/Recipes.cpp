@@ -1,6 +1,7 @@
 // Hearthcooking - cook by hand in Skyrim Special Edition.
 // Copyright (C) 2026 evodube. GPL-3.0 (LICENSE.txt).
 #include "Recipes.h"
+#include "Lang.h"
 
 #include "EspIds.h"
 
@@ -49,17 +50,17 @@ namespace Recipes
 		std::string ShortName(const RE::TESFile* a_f)
 		{
 			if (!a_f) {
-				return "Vanilla";
+				return Tr("Vanilla");
 			}
 			const std::string file = a_f->GetFilename().data();
 			const std::string low = Lower(file);
 			for (const char* v : { "skyrim.esm", "update.esm", "dawnguard.esm", "hearthfires.esm", "dragonborn.esm" }) {
 				if (low == v) {
-					return "Vanilla";
+					return Tr("Vanilla");
 				}
 			}
 			if ((low.rfind("cc", 0) == 0 && low.find("sse0") != std::string::npos) || low.find("unofficial skyrim") != std::string::npos) {
-				return "Vanilla";
+				return Tr("Vanilla");
 			}
 			static const std::pair<const char*, const char*> kKnown[] = { { "complete alchemy & cooking overhaul", "CACO" }, { "gourmet", "Gourmet" },
 				{ "legacyofthedragonborn", "LotD" }, { "hunterborn", "Hunterborn" }, { "bsheartland", "Bruma" }, { "bsassets", "Bruma" },
@@ -96,7 +97,7 @@ namespace Recipes
 					continue;
 				}
 				const std::string by = ShortName(f);
-				return by == origin ? origin : fmt::format("{}, edited by {}", origin, by);
+				return by == origin ? origin : TrF("{}, edited by {}", origin, by);
 			}
 			return origin;
 		}
@@ -113,7 +114,7 @@ namespace Recipes
 				return false;
 			}
 			auto& slot = g_slots[a_k];
-			const std::string name = fmt::format("{} {}", hc::TierName(a_tier), a_base->GetName());
+			const std::string name = TrF("{} {}", Tr(hc::TierName(a_tier)), a_base->GetName());  // ("Masterwork Venison Stew": the order's the translation's)
 			s->fullName = name.c_str();
 			s->SetModel(a_base->GetModel());
 			s->alternateTextures = a_base->alternateTextures;

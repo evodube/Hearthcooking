@@ -687,7 +687,7 @@ namespace hc
 		// done
 		const double done = Window(_cook, 0.92, 1.3, 2.5, 1.2);
 		const char*  dv = _cook < 0.6 ? "Still raw" : _cook < 0.92 ? "Not quite done" : _cook <= 1.3 ? "Cooked through, just right" : _cook < 1.9 ? "Cooked a bit long" : "Boiled to mush";
-		l[5] = { "Done", dv, done };
+		l[5] = { "How done", dv, done };
 		w[5] = 0.25;
 		return Grade(l, w, 6, 5, _burn >= 1.0, "It caught on the bottom and burnt");
 	}
@@ -757,7 +757,7 @@ namespace hc
 		w[0] = 0.35;
 		const double mean = Mean();
 		const double done = Window(mean, 0.9, 1.3, 2.5, 2.0);
-		l[1] = { "Done", mean < 0.6 ? "Still bloody" : mean < 0.9 ? "Underdone" : mean <= 1.3 ? "Done to a turn" : "Overdone", done };
+		l[1] = { "How done", mean < 0.6 ? "Still bloody" : mean < 0.9 ? "Underdone" : mean <= 1.3 ? "Done to a turn" : "Overdone", done };
 		w[1] = 0.3;
 		l[2] = { "The fire", _heat.Verdict(), _heat.Score() };
 		w[2] = -1.0;  // (the heat isn't judged: it shows in what it does to the dish)

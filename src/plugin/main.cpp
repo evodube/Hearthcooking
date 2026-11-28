@@ -14,6 +14,7 @@
 
 #include "Menu.h"
 #include "Config.h"
+#include "Lang.h"
 #include "Cook.h"
 #include "Render3D.h"
 #include "Overlay.h"
@@ -109,6 +110,7 @@ namespace
 			Menu::Register();
 			break;
 		case SKSE::MessagingInterface::kDataLoaded:
+			Lang::Load();  // (before the recipes: their sources and dishes are named in it)
 			Render3D::Prewarm();  // (the kitchen's shaders, compiled in the background)
 			Cook::OnDataLoaded();
 			Overlay::WatchSteamOverlay();

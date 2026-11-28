@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(Hearthcooking VERSION 0.7.9 LANGUAGES CXX)
+project(Hearthcooking VERSION 0.8.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,7 +19,7 @@ add_commonlibsse_plugin(${PROJECT_NAME}
     AUTHOR "evodube"
     USE_ADDRESS_LIBRARY
     SOURCES src/plugin/main.cpp src/plugin/Config.cpp src/plugin/Overlay.cpp src/plugin/Scene.cpp src/plugin/Cook.cpp src/plugin/Recipes.cpp src/plugin/Kit.cpp
-            src/plugin/Audio.cpp src/plugin/Menu.cpp src/plugin/Render3D.cpp src/plugin/Ui.cpp
+            src/plugin/Audio.cpp src/plugin/Menu.cpp src/plugin/Render3D.cpp src/plugin/Ui.cpp src/plugin/Lang.cpp
             src/sim/Kitchen.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE src/plugin extern/SKSEMenuFramework)
