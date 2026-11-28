@@ -1,0 +1,20 @@
+
+  CommonLibSSE.vcxproj -> D:\a\Hearthcooking\Hearthcooking\build\extern\CommonLibSSE-NG\Release\CommonLibSSE.lib
+  cmake_pch.cxx
+  __HearthcookingPlugin.cpp
+  Audio.cpp
+  Config.cpp
+  Cook.cpp
+  Kit.cpp
+  Lang.cpp
+  Menu.cpp
+  Overlay.cpp
+  Recipes.cpp
+  Render3D.cpp
+  Scene.cpp
+  Ui.cpp
+  main.cpp
+  Generating Code...
+  Kitchen.cpp
+     Creating library D:/a/Hearthcooking/Hearthcooking/build/Release/Hearthcooking.lib and object D:/a/Hearthcooking/Hearthcooking/build/Release/Hearthcooking.exp
+  Hearthcooking.vcxproj -> D:\a\Hearthcooking\Hearthcooking\build\Release\Hearthcooking.dll
